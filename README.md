@@ -1,9 +1,9 @@
 # C2S-Scale-Gemma-2-27B on AnyCloud
 
 This repository packages the van Dijk Lab's public C2S-Scale 27B cell-type
-prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` remains pending
-until its candidate digest passes Lambda CUDA execution and real model
-inference.
+prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` was validated
+on a Lambda GH200 against immutable multi-architecture manifest
+`sha256:46ccb2bb1ccb03274c7287572be41c81696c1afb823c8777d53fc1d0a67d0792`.
 
 This is an AnyCloud-maintained container and is not an official van Dijk Lab
 image. It implements the public model-card example with pinned model, source,
@@ -35,12 +35,13 @@ Provide a JSON file with at least 200 ranked genes:
 }
 ```
 
-After the validated release is promoted, override the container arguments
-after `--` and mount or bake the file into an image derived from it:
+Override the container arguments after `--` and mount or bake the file into an
+image derived from the validated release:
 
 ```bash
 anycloud job ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r2 \
-  --credentials lambda --gpu-type h100 --gpus all --disk-size 150 -- \
+  --credentials lambda --region us-east-3 --vm-type gpu_1x_gh200 \
+  --gpus all --disk-size 150 -- \
   --input /path/to/cell.json
 ```
 
@@ -57,6 +58,11 @@ synchronizes a BF16 CUDA matrix multiplication, then runs the official
 model-card prediction path. Only a digest with committed Lambda evidence can
 pass the separate `Promote validated image` workflow, which adds the release tag
 without rebuilding.
+
+The committed [GH200 validation evidence](validation/lambda-gh200.json) records
+an exit code of zero, a synchronized finite BF16 CUDA matrix multiplication,
+and the expected prediction `CD16-positive, CD56-dim natural killer cell,
+human` from the pinned upstream example.
 
 The local Mac is an authoring environment only. It is not used to build images,
 install or test CUDA, download weights, or reproduce the model.

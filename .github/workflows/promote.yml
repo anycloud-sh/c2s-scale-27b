@@ -10,7 +10,7 @@ on:
       validation_file:
         description: Committed Lambda validation JSON
         required: true
-        default: validation/lambda-h100.json
+        default: validation/lambda-gh200.json
         type: string
 
 permissions:
