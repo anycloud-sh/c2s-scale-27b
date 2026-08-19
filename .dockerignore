@@ -1,0 +1,5 @@
+*
+!Dockerfile
+!predict.py
+!examples/
+!examples/*.json
