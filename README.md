@@ -2,125 +2,73 @@
 
 Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on cloud GPUs.
 
-Based on van Dijk Lab's public
-[`vandijklab/cell2sentence`](https://github.com/vandijklab/cell2sentence)
-repository and
-[`vandijklab/C2S-Scale-Gemma-2-27B`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B)
-model. This evaluates the public C2S-Scale release; CellType currently presents
-[CT-1](https://www.celltype.com/) as its foundation model.
-
-This repository packages the van Dijk Lab's public C2S-Scale 27B cell-type
-prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` was validated
-on a Lambda GH200 against immutable multi-architecture manifest
-`sha256:46ccb2bb1ccb03274c7287572be41c81696c1afb823c8777d53fc1d0a67d0792`.
-
-This is an AnyCloud-maintained container and is not an official van Dijk Lab
-image. It implements the public model-card example with pinned model, source,
-base-image, and Python dependency revisions.
-
-The image targets `linux/amd64` and `linux/arm64` and a single BF16-capable
-NVIDIA GPU with at least 64 GiB VRAM. An H100 80 GB or GH200 96 GB is an
-intended target; B200 is not required.
-
-The image does not contain or redistribute model weights. At runtime it
-downloads approximately 54.5 GB of creator-owned public weights from Hugging
-Face, predicts a cell type, prints the result and run metadata as JSON, and
-writes the same result to `/mnt/output/c2s-scale-27b.json`.
-
-The default input is a real human immune cell from the Cell2Sentence upstream
-test fixture, represented as its 200 highest-expression genes. The checked-in
-example records the upstream path, commit, fixture SHA-256, cell index, and tie
-shuffle seed used to derive it.
+This AnyCloud-maintained artifact packages the public
+[`cell2sentence`](https://github.com/vandijklab/cell2sentence) example and
+[`C2S-Scale`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B) model—not CellType's current [CT-1](https://www.celltype.com/) model.
 
 ## Run the eval
 
 ```bash
-anycloud job \
-  --credentials lambda \
-  --region us-east-3 \
-  --vm-type gpu_1x_gh200 \
-  --disk-size 150 \
-  --gpus all \
-  ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r2
+anycloud job ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r3 \
+  --credentials lambda --region us-east-3 --vm-type gpu_1x_gh200 \
+  --disk-size 150 --gpus all
 ```
 
-### Input
-
-- Exact fixture: [`immune-tissue-natural-killer-cell.json`](examples/immune-tissue-natural-killer-cell.json)
-- Cell: `CZI-IA10244331+CZI-IA10244433_CGAACATGTCTTCTCG`
-- Organism: `Homo sapiens`
-- Ranked genes: 200, from `ACTB` through `EEF1B2`
-- Expected label: `CD16-positive, CD56-dim natural killer cell, human`
-
-### Result
+The bundled [input fixture](examples/immune-tissue-natural-killer-cell.json) is a
+human immune cell represented by 200 ranked genes (`ACTB` first, `EEF1B2` last).
 
 ```json
 {
+  "raw_prediction": "CD16-positive, CD56-dim natural killer cell, human.<ctrl100>",
   "prediction": "CD16-positive, CD56-dim natural killer cell, human",
   "matches_expected": true
 }
 ```
 
-The committed [GH200 validation evidence](validation/lambda-gh200.json) records
-the exact image digest, CUDA operation, output, and timings.
+`prediction` removes trailing control tokens and punctuation from
+`raw_prediction`. [GH200 evidence](validation/lambda-gh200.json) records the exact digest, CUDA operation, input, output, and timings.
 
-This is a functional deployment eval: it proves that the published image runs
-real CUDA work and reproduces the expected result for one pinned upstream cell.
-It is not a comprehensive model-quality benchmark, training pipeline, or
-clinical validation.
+Every fresh job downloads approximately 54.5 GB of public weights. The validated
+run took **TIMING_PENDING** end to end and **SCRIPT_TIMING_PENDING** in the runner.
+It uses no checkpoint because it has no resumable state. JSON is printed to logs;
+`/mnt/output/c2s-scale-27b.json` is durable only with an output bucket.
 
-## Use another cell sentence
+## Use another cell
 
-Provide a JSON file with at least 200 ranked genes:
-
-```json
-{
-  "cell_id": "my-cell",
-  "organism": "Homo sapiens",
-  "genes": ["MALAT1", "ACTB", "B2M"]
-}
-```
-
-Override the container arguments after `--` and mount or bake the file into an
-image derived from the validated release:
+Replace the complete fixture's metadata and 200-or-more ranked genes, then upload it:
 
 ```bash
-anycloud job ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r2 \
+export C2S_INPUT_BUCKET=my-unique-c2s-input
+export C2S_OUTPUT_BUCKET=my-unique-c2s-output
+export C2S_STORAGE_CREDENTIALS=my-aws
+export C2S_STORAGE_REGION=us-east-1
+
+anycloud bucket create "$C2S_INPUT_BUCKET" \
+  --credentials "$C2S_STORAGE_CREDENTIALS" --region "$C2S_STORAGE_REGION"
+anycloud bucket upload "$C2S_INPUT_BUCKET" \
+  examples/immune-tissue-natural-killer-cell.json cells/cell.json \
+  --credentials "$C2S_STORAGE_CREDENTIALS" --region "$C2S_STORAGE_REGION"
+
+anycloud job ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r3 \
   --credentials lambda --region us-east-3 --vm-type gpu_1x_gh200 \
-  --gpus all --disk-size 150 -- \
-  --input /path/to/cell.json
+  --disk-size 150 --gpus all \
+  --input-bucket "$C2S_INPUT_BUCKET" \
+  --input-storage-credentials "$C2S_STORAGE_CREDENTIALS" \
+  --input-storage-region "$C2S_STORAGE_REGION" \
+  --output-bucket "$C2S_OUTPUT_BUCKET" \
+  --output-storage-credentials "$C2S_STORAGE_CREDENTIALS" \
+  --output-storage-region "$C2S_STORAGE_REGION" -- \
+  --input /mnt/input/cells/cell.json
 ```
 
-For a short command-line test, `--genes` accepts a space-separated ranked gene
-list; the same 200-gene minimum is enforced.
+The output bucket is created automatically. Download with `anycloud bucket download "$C2S_OUTPUT_BUCKET" c2s-scale-27b.json ./result.json --credentials "$C2S_STORAGE_CREDENTIALS" --region "$C2S_STORAGE_REGION"`.
 
-## Build, validate, and promote
+## Reproducibility and limits
 
-The repository's `Build candidate` workflow assembles AMD64 and ARM64 images on
-native hosted Linux CPU runners, combines them under one manifest, and publishes
-only `candidate-<source-commit>`. The exact registry digest is then run on a
-Lambda GPU through AnyCloud. The inference wrapper first executes and
-synchronizes a BF16 CUDA matrix multiplication, then runs the official
-model-card prediction path. Only a digest with committed Lambda evidence can
-pass the separate `Promote validated image` workflow, which adds the release tag
-without rebuilding.
+Release `0.2.0-44c2ff7-r3` targets AMD64/ARM64, BF16, and at least 64 GiB VRAM.
+H100 80 GB or GH200 96 GB is sufficient; B200 is unnecessary. Source is pinned
+to `a6efaf0`, model `44c2ff7`, and the [Dockerfile](Dockerfile)'s exact inputs.
 
-The local Mac is an authoring environment only. It is not used to build images,
-install or test CUDA, download weights, or reproduce the model.
-
-## Pinned upstream inputs
-
-- Cell2Sentence source:
-  [`a6efaf0`](https://github.com/vandijklab/cell2sentence/tree/a6efaf079f98491d4723ced44b929936b94368aa)
-- C2S-Scale-Gemma-2-27B model:
-  [`44c2ff7`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B/tree/44c2ff7dd5edc26daf9c3f4106e18e162a55676a)
-- Base image: `ghcr.io/astral-sh/uv:python3.13-bookworm-slim` at
-  `sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca`
-- Runtime: `torch==2.9.1`, `transformers==4.57.6`,
-  `accelerate==1.14.0`, `sentencepiece==0.2.1`
-- Minimum GPU memory enforced by the wrapper: 64 GiB
-
-The wrapper code is Apache-2.0 licensed. The upstream Cell2Sentence code is
-Apache-2.0 licensed, while the model weights are CC-BY-4.0. Review the
-[model card](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B) for
-intended use and limitations.
+This one-cell deployment eval is not a quality benchmark, training pipeline, or
+clinical validation. Code is Apache-2.0; downloaded weights are CC-BY-4.0. This
+is not an official van Dijk Lab image.

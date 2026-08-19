@@ -23,7 +23,7 @@ jobs:
     env:
       DIGEST: ${{ inputs.digest }}
       PACKAGE: ghcr.io/anycloud-sh/c2s-scale-27b
-      RELEASE_TAG: 0.2.0-44c2ff7-r2
+      RELEASE_TAG: 0.2.0-44c2ff7-r3
       VALIDATION_FILE: ${{ inputs.validation_file }}
     steps:
       - name: Check out validation evidence
@@ -40,14 +40,29 @@ jobs:
             exit 1
           fi
           jq -e \
+            --arg digest "${DIGEST}" \
             --arg image "${PACKAGE}@${DIGEST}" \
+            --arg model "vandijklab/C2S-Scale-Gemma-2-27B" \
+            --arg model_revision "44c2ff7dd5edc26daf9c3f4106e18e162a55676a" \
+            --arg source_revision "a6efaf079f98491d4723ced44b929936b94368aa" \
+            --arg cell_id "CZI-IA10244331+CZI-IA10244433_CGAACATGTCTTCTCG" \
+            --arg expected "CD16-positive, CD56-dim natural killer cell, human" \
             '.provider == "Lambda"
              and .exit_code == 0
              and .image == $image
+             and .manifest_digest == $digest
+             and .model == $model
+             and .model_revision == $model_revision
+             and .source_revision == $source_revision
+             and .input.cell_id == $cell_id
+             and .input.gene_count == 200
+             and .input.expected_cell_type == $expected
              and .cuda.available == true
              and .cuda.matmul_finite == true
              and .cuda.bf16_supported == true
-             and (.prediction | type == "string" and length > 0)' \
+             and (.raw_prediction | type == "string" and length > 0)
+             and .prediction == $expected
+             and .matches_expected == true' \
             "${VALIDATION_FILE}" > /dev/null
 
       - name: Set up Docker Buildx

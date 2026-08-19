@@ -190,12 +190,11 @@ def main() -> None:
     generation_seconds = time.monotonic() - generation_started_at
 
     generated_tokens = outputs[0, tokenized["input_ids"].shape[-1] :]
-    predicted_cell_type = clean_prediction(
-        tokenizer.decode(
-            generated_tokens,
-            skip_special_tokens=True,
-        )
+    raw_prediction = tokenizer.decode(
+        generated_tokens,
+        skip_special_tokens=True,
     )
+    predicted_cell_type = clean_prediction(raw_prediction)
     expected_cell_type = cell["expected_cell_type"]
 
     result = {
@@ -215,6 +214,7 @@ def main() -> None:
             "path": cell["input_path"],
             "provenance": cell["provenance"],
         },
+        "raw_prediction": raw_prediction,
         "prediction": predicted_cell_type,
         "matches_expected": (
             None
