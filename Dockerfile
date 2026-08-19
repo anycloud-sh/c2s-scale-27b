@@ -32,7 +32,17 @@ RUN case "${TARGETARCH}" in \
       "transformers==4.57.6"
 
 RUN python -c 'import accelerate, google.protobuf, sentencepiece, torch, transformers; assert torch.version.cuda == "12.8"'
-RUN uv pip check --system
+# NVIDIA publishes the official ARM wheel with an internal `sbsa` platform tag.
+# GH200 is SBSA/aarch64; normalize that installed metadata to the standard alias
+# so uv can verify the rest of the environment without a false mismatch.
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+      python -c 'import platform; assert platform.machine() == "aarch64"'; \
+      CUSPARSELT_METADATA="$(find /usr/local/lib/python3.13/site-packages -path '*/nvidia_cusparselt_cu12-*.dist-info/WHEEL' -print -quit)"; \
+      test -n "${CUSPARSELT_METADATA}"; \
+      grep -qx 'Tag: py3-none-manylinux2014_sbsa' "${CUSPARSELT_METADATA}"; \
+      sed -i 's/manylinux2014_sbsa/manylinux2014_aarch64/' "${CUSPARSELT_METADATA}"; \
+    fi && \
+    uv pip check --system
 
 ENV HF_HOME=/root/.cache/huggingface \
     HF_HUB_DISABLE_TELEMETRY=1 \
