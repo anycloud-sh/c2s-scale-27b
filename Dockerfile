@@ -1,6 +1,7 @@
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim@sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca
 
 ARG IMAGE_REVISION=unknown
+ARG TARGETARCH
 
 LABEL org.opencontainers.image.title="C2S-Scale-Gemma-2-27B portable inference job" \
       org.opencontainers.image.description="AnyCloud-maintained packaging of the van Dijk Lab C2S-Scale 27B cell-type prediction path" \
@@ -15,9 +16,15 @@ LABEL org.opencontainers.image.title="C2S-Scale-Gemma-2-27B portable inference j
       sh.anycloud.upstream.model="https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B" \
       sh.anycloud.upstream.model-revision="44c2ff7dd5edc26daf9c3f4106e18e162a55676a"
 
-RUN uv pip install --system --no-cache \
+RUN case "${TARGETARCH}" in \
+      amd64) CUSPARSELT_WHEEL="https://pypi.nvidia.com/nvidia-cusparselt-cu12/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl#sha256=f1bb701d6b930d5a7cea44c19ceb973311500847f81b634d802b7b539dc55623" ;; \
+      arm64) CUSPARSELT_WHEEL="https://pypi.nvidia.com/nvidia-cusparselt-cu12/nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_aarch64.whl#sha256=8878dce784d0fac90131b6817b607e803c36e629ba34dc5b433471382196b6a5" ;; \
+      *) echo "Unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac && \
+    uv pip install --system --no-cache \
       --index https://download.pytorch.org/whl/cu128 \
       --index-strategy unsafe-best-match \
+      "${CUSPARSELT_WHEEL}" \
       "accelerate==1.14.0" \
       "protobuf==7.35.1" \
       "sentencepiece==0.2.1" \
