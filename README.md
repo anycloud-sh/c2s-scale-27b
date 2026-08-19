@@ -1,7 +1,6 @@
 # C2S-Scale-Gemma-2-27B on AnyCloud
 
-Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on a cloud GPU
-without managing CUDA, Python dependencies, or model setup.
+Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on cloud GPUs.
 
 This repository packages the van Dijk Lab's public C2S-Scale 27B cell-type
 prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` was validated
@@ -38,7 +37,15 @@ anycloud job \
   ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r2
 ```
 
-The pinned example produces:
+### Input
+
+- Exact fixture: [`immune-tissue-natural-killer-cell.json`](examples/immune-tissue-natural-killer-cell.json)
+- Cell: `CZI-IA10244331+CZI-IA10244433_CGAACATGTCTTCTCG`
+- Organism: `Homo sapiens`
+- Ranked genes: 200, from `ACTB` through `EEF1B2`
+- Expected label: `CD16-positive, CD56-dim natural killer cell, human`
+
+### Result
 
 ```json
 {
