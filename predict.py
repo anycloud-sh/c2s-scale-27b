@@ -114,6 +114,23 @@ def main() -> None:
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
 
+    if not torch.cuda.is_bf16_supported():
+        raise RuntimeError("C2S-Scale-Gemma-2-27B requires BF16-capable CUDA hardware")
+
+    cuda_test_started_at = time.monotonic()
+    with torch.inference_mode():
+        left = torch.randn((2048, 2048), device="cuda", dtype=torch.bfloat16)
+        right = torch.randn((2048, 2048), device="cuda", dtype=torch.bfloat16)
+        product = left @ right
+        torch.cuda.synchronize()
+        matmul_finite = bool(torch.isfinite(product).all().item())
+        matmul_mean = float(product.float().mean().item())
+    if not matmul_finite:
+        raise RuntimeError("CUDA BF16 matrix multiplication returned non-finite values")
+    del left, right, product
+    torch.cuda.empty_cache()
+    cuda_test_seconds = time.monotonic() - cuda_test_started_at
+
     model_load_started_at = time.monotonic()
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_ID,
@@ -163,6 +180,17 @@ def main() -> None:
         "gpu": {
             "name": properties.name,
             "vram_gib": round(properties.total_memory / 1024**3, 1),
+        },
+        "cuda": {
+            "available": True,
+            "compiled_version": torch.version.cuda,
+            "device_capability": list(torch.cuda.get_device_capability(device)),
+            "bf16_supported": True,
+            "matmul_shape": [2048, 2048],
+            "matmul_finite": matmul_finite,
+            "matmul_mean": matmul_mean,
+            "test_seconds": round(cuda_test_seconds, 3),
+            "torch_version": torch.__version__,
         },
         "input": {
             "cell_id": cell["cell_id"],

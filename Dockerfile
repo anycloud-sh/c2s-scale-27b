@@ -20,8 +20,11 @@ RUN uv pip install --system --no-cache \
       --index-strategy unsafe-best-match \
       "accelerate==1.14.0" \
       "sentencepiece==0.2.1" \
-      "torch==2.9.1" \
+      "torch==2.8.0" \
       "transformers==4.57.6"
+
+RUN python -c 'import accelerate, sentencepiece, torch, transformers; assert torch.version.cuda == "12.8"'
+RUN uv pip check --system
 
 ENV HF_HOME=/root/.cache/huggingface \
     HF_HUB_DISABLE_TELEMETRY=1 \
