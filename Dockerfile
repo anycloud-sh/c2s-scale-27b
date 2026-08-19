@@ -21,7 +21,7 @@ RUN uv pip install --system --no-cache \
       "accelerate==1.14.0" \
       "protobuf==7.35.1" \
       "sentencepiece==0.2.1" \
-      "torch==2.8.0" \
+      "torch==2.9.1" \
       "transformers==4.57.6"
 
 RUN python -c 'import accelerate, google.protobuf, sentencepiece, torch, transformers; assert torch.version.cuda == "12.8"'

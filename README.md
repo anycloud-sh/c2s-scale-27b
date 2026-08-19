@@ -9,8 +9,9 @@ This is an AnyCloud-maintained container and is not an official van Dijk Lab
 image. It implements the public model-card example with pinned model, source,
 base-image, and Python dependency revisions.
 
-The image targets `linux/amd64` and a single BF16-capable NVIDIA GPU with at
-least 64 GiB VRAM. An H100 80 GB is the intended target; B200 is not required.
+The image targets `linux/amd64` and `linux/arm64` and a single BF16-capable
+NVIDIA GPU with at least 64 GiB VRAM. An H100 80 GB or GH200 96 GB is an
+intended target; B200 is not required.
 
 The image does not contain or redistribute model weights. At runtime it
 downloads approximately 54.5 GB of creator-owned public weights from Hugging
@@ -48,13 +49,14 @@ list; the same 200-gene minimum is enforced.
 
 ## Build, validate, and promote
 
-The repository's `Build candidate` workflow assembles the image on a hosted
-Linux CPU runner and publishes only `candidate-<source-commit>`. The exact
-registry digest is then run on a Lambda GPU through AnyCloud. The inference
-wrapper first executes and synchronizes a BF16 CUDA matrix multiplication, then
-runs the official model-card prediction path. Only a digest with committed
-Lambda evidence can pass the separate `Promote validated image` workflow,
-which adds the release tag without rebuilding.
+The repository's `Build candidate` workflow assembles AMD64 and ARM64 images on
+native hosted Linux CPU runners, combines them under one manifest, and publishes
+only `candidate-<source-commit>`. The exact registry digest is then run on a
+Lambda GPU through AnyCloud. The inference wrapper first executes and
+synchronizes a BF16 CUDA matrix multiplication, then runs the official
+model-card prediction path. Only a digest with committed Lambda evidence can
+pass the separate `Promote validated image` workflow, which adds the release tag
+without rebuilding.
 
 The local Mac is an authoring environment only. It is not used to build images,
 install or test CUDA, download weights, or reproduce the model.
@@ -67,7 +69,7 @@ install or test CUDA, download weights, or reproduce the model.
   [`44c2ff7`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B/tree/44c2ff7dd5edc26daf9c3f4106e18e162a55676a)
 - Base image: `ghcr.io/astral-sh/uv:python3.13-bookworm-slim` at
   `sha256:531f855bda2c73cd6ef67d56b733b357cea384185b3022bd09f05e002cd144ca`
-- Runtime: `torch==2.8.0`, `transformers==4.57.6`,
+- Runtime: `torch==2.9.1`, `transformers==4.57.6`,
   `accelerate==1.14.0`, `sentencepiece==0.2.1`
 - Minimum GPU memory enforced by the wrapper: 64 GiB
 
