@@ -2,6 +2,13 @@
 
 Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on cloud GPUs.
 
+Based on van Dijk Lab's public
+[`vandijklab/cell2sentence`](https://github.com/vandijklab/cell2sentence)
+repository and
+[`vandijklab/C2S-Scale-Gemma-2-27B`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B)
+model. This evaluates the public C2S-Scale release; CellType currently presents
+[CT-1](https://www.celltype.com/) as its foundation model.
+
 This repository packages the van Dijk Lab's public C2S-Scale 27B cell-type
 prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` was validated
 on a Lambda GH200 against immutable multi-architecture manifest
