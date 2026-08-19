@@ -1,5 +1,8 @@
 # C2S-Scale-Gemma-2-27B on AnyCloud
 
+Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on a cloud GPU
+without managing CUDA, Python dependencies, or model setup.
+
 This repository packages the van Dijk Lab's public C2S-Scale 27B cell-type
 prediction path as a finite GPU job. Release `0.2.0-44c2ff7-r2` was validated
 on a Lambda GH200 against immutable multi-architecture manifest
@@ -22,6 +25,35 @@ The default input is a real human immune cell from the Cell2Sentence upstream
 test fixture, represented as its 200 highest-expression genes. The checked-in
 example records the upstream path, commit, fixture SHA-256, cell index, and tie
 shuffle seed used to derive it.
+
+## Run the eval
+
+```bash
+anycloud job \
+  --credentials lambda \
+  --region us-east-3 \
+  --vm-type gpu_1x_gh200 \
+  --disk-size 150 \
+  --gpus all \
+  ghcr.io/anycloud-sh/c2s-scale-27b:0.2.0-44c2ff7-r2
+```
+
+The pinned example produces:
+
+```json
+{
+  "prediction": "CD16-positive, CD56-dim natural killer cell, human",
+  "matches_expected": true
+}
+```
+
+The committed [GH200 validation evidence](validation/lambda-gh200.json) records
+the exact image digest, CUDA operation, output, and timings.
+
+This is a functional deployment eval: it proves that the published image runs
+real CUDA work and reproduces the expected result for one pinned upstream cell.
+It is not a comprehensive model-quality benchmark, training pipeline, or
+clinical validation.
 
 ## Use another cell sentence
 
@@ -58,11 +90,6 @@ synchronizes a BF16 CUDA matrix multiplication, then runs the official
 model-card prediction path. Only a digest with committed Lambda evidence can
 pass the separate `Promote validated image` workflow, which adds the release tag
 without rebuilding.
-
-The committed [GH200 validation evidence](validation/lambda-gh200.json) records
-an exit code of zero, a synchronized finite BF16 CUDA matrix multiplication,
-and the expected prediction `CD16-positive, CD56-dim natural killer cell,
-human` from the pinned upstream example.
 
 The local Mac is an authoring environment only. It is not used to build images,
 install or test CUDA, download weights, or reproduce the model.
