@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.title="C2S-Scale-Gemma-2-27B portable inference j
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.created="2026-08-19T00:00:00Z" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
-      org.opencontainers.image.version="0.1.0-44c2ff7-r1" \
+      org.opencontainers.image.version="0.2.0-44c2ff7-r2" \
       sh.anycloud.upstream.source="https://github.com/vandijklab/cell2sentence" \
       sh.anycloud.upstream.source-revision="a6efaf079f98491d4723ced44b929936b94368aa" \
       sh.anycloud.upstream.model="https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B" \
@@ -20,7 +20,7 @@ RUN uv pip install --system --no-cache \
       --index-strategy unsafe-best-match \
       "accelerate==1.14.0" \
       "sentencepiece==0.2.1" \
-      "torch==2.8.0" \
+      "torch==2.9.1" \
       "transformers==4.57.6"
 
 ENV HF_HOME=/root/.cache/huggingface \
