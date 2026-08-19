@@ -1,29 +1,48 @@
 {
-  "schema_version": 1,
-  "validated_at": "2026-08-19T20:32:05.453Z",
+  "schema_version": 2,
+  "validated_at": "2026-08-19T23:38:00.131Z",
+  "validation_kind": "uploaded-input-and-persisted-output",
   "provider": "Lambda",
   "region": "us-east-3",
   "vm_type": "gpu_1x_gh200",
-  "deployment_id": "c2s27b-r2-final-260819",
+  "deployment_id": "c2s27b-r3-buckets-260819",
   "platform": "linux/arm64",
-  "candidate": "ghcr.io/anycloud-sh/c2s-scale-27b:candidate-836667566534a961704d20cb1835cbc050478eed",
-  "image": "ghcr.io/anycloud-sh/c2s-scale-27b@sha256:46ccb2bb1ccb03274c7287572be41c81696c1afb823c8777d53fc1d0a67d0792",
-  "manifest_digest": "sha256:46ccb2bb1ccb03274c7287572be41c81696c1afb823c8777d53fc1d0a67d0792",
-  "platform_digest": "sha256:d4c40b4f99792d37d871877c2c0ecafdb682471e6e499274286484b3894d54eb",
-  "source_commit": "836667566534a961704d20cb1835cbc050478eed",
+  "candidate": "ghcr.io/anycloud-sh/c2s-scale-27b:candidate-5d04db3a52aeb99b7289aa6e1e0f4f4c2b19a7e3",
+  "image": "ghcr.io/anycloud-sh/c2s-scale-27b@sha256:2ee1fb13e021f33f4c1da08d1320ddf4fd5b8be9f2791f23e2ac7569a1dbe1c2",
+  "manifest_digest": "sha256:2ee1fb13e021f33f4c1da08d1320ddf4fd5b8be9f2791f23e2ac7569a1dbe1c2",
+  "platform_digest": "sha256:e8172d5b6ae0a219caf968c4fc1464ca5b8a223bcb74aed475dcd04ace13401e",
+  "source_commit": "5d04db3a52aeb99b7289aa6e1e0f4f4c2b19a7e3",
   "build": {
     "workflow": "Build candidate",
-    "run_id": 32298074212,
-    "url": "https://github.com/anycloud-sh/c2s-scale-27b/actions/runs/32298074212",
+    "run_id": 32312910347,
+    "url": "https://github.com/anycloud-sh/c2s-scale-27b/actions/runs/32312910347",
     "native_platforms": [
       "linux/amd64",
       "linux/arm64"
     ]
   },
-  "started_at": "2026-08-19T20:27:12.222Z",
-  "completed_at": "2026-08-19T20:32:05.453Z",
+  "storage": {
+    "input_bucket": "anycloud-c2s27b-5d04db3-input",
+    "input_object": "cells/cell.json",
+    "input_sha256": "4b7d8b9316bac1d3e27d7bcec707a651a8b2e62e2aab6b410e83097926173b42",
+    "output_bucket": "anycloud-c2s27b-5d04db3-output",
+    "output_object": "c2s-scale-27b.json",
+    "output_sha256": "085e98777d290fd5b25c74088efb6df6d9b8561ab44f658a94d16c14332b6efa",
+    "checkpoint_bucket": null,
+    "final_sync_attempts": 1
+  },
+  "started_at": "2026-08-19T23:33:53.672Z",
+  "completed_at": "2026-08-19T23:38:00.131Z",
+  "elapsed_ms": 246459,
   "exit_code": 0,
   "oom_killed": false,
+  "model": "vandijklab/C2S-Scale-Gemma-2-27B",
+  "model_revision": "44c2ff7dd5edc26daf9c3f4106e18e162a55676a",
+  "source_revision": "a6efaf079f98491d4723ced44b929936b94368aa",
+  "gpu": {
+    "name": "NVIDIA GH200 480GB",
+    "vram_gib": 94.5
+  },
   "cuda": {
     "available": true,
     "compiled_version": "12.8",
@@ -38,18 +57,15 @@
     ],
     "matmul_finite": true,
     "matmul_mean": -0.005619633011519909,
-    "test_seconds": 0.16,
+    "test_seconds": 0.161,
     "torch_version": "2.9.1+cu128"
   },
-  "model": "vandijklab/C2S-Scale-Gemma-2-27B",
-  "model_revision": "44c2ff7dd5edc26daf9c3f4106e18e162a55676a",
-  "source_revision": "a6efaf079f98491d4723ced44b929936b94368aa",
   "input": {
     "cell_id": "CZI-IA10244331+CZI-IA10244433_CGAACATGTCTTCTCG",
     "organism": "Homo sapiens",
     "gene_count": 200,
     "expected_cell_type": "CD16-positive, CD56-dim natural killer cell, human",
-    "path": "/opt/c2s/examples/immune-tissue-natural-killer-cell.json",
+    "path": "/mnt/input/cells/cell.json",
     "provenance": {
       "source_repository": "https://github.com/vandijklab/cell2sentence",
       "source_revision": "a6efaf079f98491d4723ced44b929936b94368aa",
@@ -60,6 +76,7 @@
       "tie_shuffle_seed": 42
     }
   },
+  "raw_prediction": "\nCD16-positive, CD56-dim natural killer cell, human.<ctrl100>",
   "prediction": "CD16-positive, CD56-dim natural killer cell, human",
   "matches_expected": true,
   "generation": {
@@ -69,13 +86,8 @@
     "output_tokens": 20
   },
   "timing_seconds": {
-    "model_load": 62.412,
-    "generation": 1.033,
-    "total": 68.003
-  },
-  "lifecycle": {
-    "vm_duration_ms_at_completion": 324254,
-    "estimated_cost_usd_at_completion": 0.20626157222222224,
-    "cost_source": "estimated"
+    "model_load": 49.847,
+    "generation": 1.044,
+    "total": 55.524
   }
 }

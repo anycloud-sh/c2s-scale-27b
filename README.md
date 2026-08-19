@@ -19,17 +19,17 @@ human immune cell represented by 200 ranked genes (`ACTB` first, `EEF1B2` last).
 
 ```json
 {
-  "raw_prediction": "CD16-positive, CD56-dim natural killer cell, human.<ctrl100>",
+  "raw_prediction": "\nCD16-positive, CD56-dim natural killer cell, human.<ctrl100>",
   "prediction": "CD16-positive, CD56-dim natural killer cell, human",
   "matches_expected": true
 }
 ```
 
 `prediction` removes trailing control tokens and punctuation from
-`raw_prediction`. [GH200 evidence](validation/lambda-gh200.json) records the exact digest, CUDA operation, input, output, and timings.
+`raw_prediction`. [GH200 evidence](validation/lambda-gh200.json) records the exact digest, CUDA operation, input, output, and timings; the [default-run record](validation/lambda-gh200-default.json) captures its lifecycle.
 
-Every fresh job downloads approximately 54.5 GB of public weights. The validated
-run took **TIMING_PENDING** end to end and **SCRIPT_TIMING_PENDING** in the runner.
+Every fresh job downloads approximately 54.5 GB of public weights. The default
+run took **4m03s** end to end and **53.6s** in the runner.
 It uses no checkpoint because it has no resumable state. JSON is printed to logs;
 `/mnt/output/c2s-scale-27b.json` is durable only with an output bucket.
 
