@@ -130,6 +130,21 @@ def main() -> None:
     del left, right, product
     torch.cuda.empty_cache()
     cuda_test_seconds = time.monotonic() - cuda_test_started_at
+    cuda_evidence = {
+        "available": True,
+        "compiled_version": torch.version.cuda,
+        "device_capability": list(torch.cuda.get_device_capability(device)),
+        "bf16_supported": True,
+        "matmul_shape": [2048, 2048],
+        "matmul_finite": matmul_finite,
+        "matmul_mean": matmul_mean,
+        "test_seconds": round(cuda_test_seconds, 3),
+        "torch_version": torch.__version__,
+    }
+    print(
+        json.dumps({"event": "cuda_validation", "cuda": cuda_evidence}),
+        flush=True,
+    )
 
     model_load_started_at = time.monotonic()
     tokenizer = AutoTokenizer.from_pretrained(
@@ -181,17 +196,7 @@ def main() -> None:
             "name": properties.name,
             "vram_gib": round(properties.total_memory / 1024**3, 1),
         },
-        "cuda": {
-            "available": True,
-            "compiled_version": torch.version.cuda,
-            "device_capability": list(torch.cuda.get_device_capability(device)),
-            "bf16_supported": True,
-            "matmul_shape": [2048, 2048],
-            "matmul_finite": matmul_finite,
-            "matmul_mean": matmul_mean,
-            "test_seconds": round(cuda_test_seconds, 3),
-            "torch_version": torch.__version__,
-        },
+        "cuda": cuda_evidence,
         "input": {
             "cell_id": cell["cell_id"],
             "organism": cell["organism"],
