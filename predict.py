@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ SOURCE_REVISION = "a6efaf079f98491d4723ced44b929936b94368aa"
 DEFAULT_INPUT = Path("/opt/c2s/examples/immune-tissue-natural-killer-cell.json")
 MINIMUM_GENES = 200
 MINIMUM_VRAM_BYTES = 64 * 1024**3
+TRAILING_CONTROL_TOKENS = re.compile(r"(?:<ctrl\d+>)+$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -83,10 +85,16 @@ def load_input(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def clean_prediction(label: str) -> str:
+    """Remove generation-only control tokens and terminal prose punctuation."""
+    cleaned = TRAILING_CONTROL_TOKENS.sub("", label.strip()).strip()
+    return cleaned.rstrip(".").strip()
+
+
 def normalize_label(label: str | None) -> str | None:
     if label is None:
         return None
-    return label.strip().rstrip(".").casefold()
+    return clean_prediction(label).casefold()
 
 
 def main() -> None:
@@ -182,10 +190,12 @@ def main() -> None:
     generation_seconds = time.monotonic() - generation_started_at
 
     generated_tokens = outputs[0, tokenized["input_ids"].shape[-1] :]
-    predicted_cell_type = tokenizer.decode(
-        generated_tokens,
-        skip_special_tokens=True,
-    ).strip()
+    predicted_cell_type = clean_prediction(
+        tokenizer.decode(
+            generated_tokens,
+            skip_special_tokens=True,
+        )
+    )
     expected_cell_type = cell["expected_cell_type"]
 
     result = {
