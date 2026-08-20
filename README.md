@@ -2,7 +2,7 @@
 
 Run a reproducible functional eval of C2S-Scale-Gemma-2-27B on cloud GPUs.
 
-This AnyCloud-maintained artifact packages the public
+This AnyCloud-powered artifact packages the public
 [`cell2sentence`](https://github.com/vandijklab/cell2sentence) example and
 [`C2S-Scale`](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-27B) model—not CellType's current [CT-1](https://www.celltype.com/) model.
 
